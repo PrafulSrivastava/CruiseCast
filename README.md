@@ -42,13 +42,30 @@ The core algorithm is implemented in `app/cruiseProfileAlgorithm.ts`.
 - The main UI (`app/AnimatedCarMap.tsx`) visualizes the algorithm's output.
 - You can interactively test time-dependent speed limits using the "Hour of Day" slider at the bottom of the map.
 
-### To Run Algorithm Tests in Console
-You can create a script (see previous instructions) to import and run `computeCruiseProfile` on the mock data, or use the UI overlays to see results live.
+### To Print Segment and Profile Data in Console
+
+You can use the following scripts to print segment and cruise profile data to the console:
+
+#### Print All Segment Data
+Prints all segment metadata and sample data:
+```sh
+npx ts-node app/printAllSegmentData.ts
+```
+
+#### Print All Segment Profiles
+Runs the cruise profile algorithm for each segment and prints the resulting cruise profile:
+```sh
+npx ts-node app/printAllSegmentProfiles.ts
+```
+
+These scripts are useful for debugging, validation, or understanding how the algorithm processes the mock data.
 
 ## Project Structure
 - `app/AnimatedCarMap.tsx` — Main map UI and animation
 - `app/cruiseProfileAlgorithm.ts` — Cruise profile algorithm logic
 - `app/cruiseProfileAlgorithm.mock.ts` — Mock data for segments and samples
+- `app/printAllSegmentData.ts` — Prints all segment and sample data to the console
+- `app/printAllSegmentProfiles.ts` — Prints computed cruise profiles for all segments
 
 ## Customization
 - Edit `app/cruiseProfileAlgorithm.mock.ts` to change segment locations, speed limits, or sample data.
