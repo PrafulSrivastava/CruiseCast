@@ -1,0 +1,207 @@
+/* Overlay for hour of day slider */
+.hourOverlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 340px;
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.hourOverlayBox {
+    background: #fff;
+    color: #222;
+    border-radius: 0.5rem;
+    box-shadow: none;
+    border: 1px solid #ececec;
+    padding: 1rem 1.5rem;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.hourSliderLabel {
+    margin-right: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #444;
+}
+
+.hourSlider {
+    width: 180px;
+    accent-color: #888;
+}
+
+.bottomOverlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    pointer-events: none;
+    padding: 1.5rem;
+}
+
+.infoBox {
+    background: #fff;
+    color: #222;
+    border-radius: 0.5rem;
+    box-shadow: none;
+    border: 1px solid #ececec;
+    padding: 1rem 1.5rem;
+    min-width: 220px;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    pointer-events: auto;
+}
+
+.speedSlider {
+    width: 100%;
+    margin-top: 0.5rem;
+    accent-color: #888;
+}
+
+.speedSliderValue {
+    text-align: center;
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+    color: #888;
+}
+
+.profileBox {
+    background: #fff;
+    color: #222;
+    border-radius: 0.5rem;
+    box-shadow: none;
+    border: 1px solid #ececec;
+    padding: 1rem 1.5rem;
+    min-width: 220px;
+    max-height: 320px;
+    overflow-y: auto;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    pointer-events: auto;
+}
+
+.profileBoxTitle {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    color: #888;
+}
+
+.profileTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.profileTableRowActive {
+    background: #f5f5f5;
+}
+
+.profileTableCell {
+    padding: 2px 8px 2px 0;
+    text-align: right;
+    color: #444;
+}
+
+.profileTableCellActive {
+    font-weight: 600;
+    color: #222;
+}
+
+.profileTableCellSpeed {
+    padding: 2px 0 2px 8px;
+    white-space: nowrap;
+}
+
+.profileTableCellReason {
+    padding: 2px 0 2px 8px;
+    font-size: 0.95em;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.carSpeedLabel {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 10px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 1em;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    border: 1px solid #fff2;
+}
+
+.layoutRow {
+    display: flex;
+    flex-direction: row;
+    gap: 2.5rem;
+    align-items: flex-start;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.mapColumn {
+    flex: 3 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.infoColumn {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+.hourSliderRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    color: #444;
+}
+
+/* Remove overlay/modal positioning from infoBox and profileBox */
+.infoBox,
+.profileBox {
+    position: static;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    z-index: unset;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}

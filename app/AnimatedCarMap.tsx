@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { GoogleMap, useJsApiLoader, Polyline, Marker } from "@react-google-maps/api";
 import { stuttgartSegments, stuttgartSamples, mockConfig } from "./cruiseProfileAlgorithm.mock";
 import { computeCruiseProfile } from "./cruiseProfileAlgorithm";
+import styles from "./AnimatedCarMap.module.css";
 
 const center = { lat: 48.7758, lng: 9.1829 }; // Stuttgart
 
@@ -26,13 +27,19 @@ export default function AnimatedCarMap() {
   });
 
   // --- Hour of day state ---
-  const [hourOfDay, setHourOfDay] = useState(new Date().getHours());
+  const [hourOfDay, setHourOfDay] = useState<number | null>(null);
+  useEffect(() => {
+    setHourOfDay(new Date().getHours());
+  }, []);
 
   // Compute cruise profile for each segment using the algorithm and selected hour
   const cruiseProfiles = useMemo(
-    () => stuttgartSegments.map((segment, idx) =>
-      computeCruiseProfile(stuttgartSamples[idx], segment, mockConfig, getDateWithHour(hourOfDay))
-    ),
+    () =>
+      hourOfDay !== null
+        ? stuttgartSegments.map((segment, idx) =>
+          computeCruiseProfile(stuttgartSamples[idx], segment, mockConfig, getDateWithHour(hourOfDay))
+        )
+        : [],
     [hourOfDay]
   );
 
@@ -111,22 +118,12 @@ export default function AnimatedCarMap() {
   }, [isLoaded, cruiseProfiles]);
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.innerHTML = `
-      .car-speed-label {
-        background: rgba(0,0,0,0.7);
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-bottom: 4px;
-        display: inline-block;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
+    // Remove the style injection for .car-speed-label, now handled by CSS module
+    return () => { };
   }, []);
 
   if (loadError) return <div>Map cannot be loaded right now.</div>;
-  if (!isLoaded) return <div>Loading Map...</div>;
+  if (!isLoaded || hourOfDay === null) return <div>Loading Map...</div>;
 
   // Helper to get color based on speed
   function getSpeedColor(speed: number) {
@@ -136,33 +133,62 @@ export default function AnimatedCarMap() {
   }
 
   return (
-    <>
-      {/* Hour of day overlay at the bottom center, with extra spacing above info overlays */}
-      <div style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 340, // Increased spacing to avoid overlap
-        zIndex: 2000,
-        display: "flex",
-        justifyContent: "center",
-        pointerEvents: "none",
-      }}>
-        <div style={{
-          background: "rgba(30,30,30,0.95)",
-          color: "#fff",
-          borderRadius: 12,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
-          padding: "18px 28px",
-          fontFamily: "sans-serif",
-          fontSize: 16,
-          lineHeight: 1.7,
-          pointerEvents: "auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}>
-          <label htmlFor="hour-slider" style={{ marginRight: 8 }}><b>Hour of Day:</b> {hourOfDay}:00</label>
+    <div className={styles.layoutRow}>
+      <div className={styles.mapColumn}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={12}
+        >
+          <Polyline
+            path={stuttgartRoute}
+            options={{
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.8,
+              strokeWeight: 4,
+              clickable: false,
+              geodesic: true,
+            }}
+          />
+          {/* Draw colored segments for each route segment based on cruiseProfiles */}
+          {cruiseProfiles.map((profile, i) => {
+            if (i === cruiseProfiles.length - 1) return null;
+            const next = cruiseProfiles[i + 1];
+            return (
+              <Polyline
+                key={i}
+                path={[
+                  { lat: stuttgartRoute[i].lat, lng: stuttgartRoute[i].lng },
+                  { lat: stuttgartRoute[i + 1].lat, lng: stuttgartRoute[i + 1].lng },
+                ]}
+                options={{
+                  strokeColor: getSpeedColor(profile.chosenSpeedKmh),
+                  strokeOpacity: 0.9,
+                  strokeWeight: 6,
+                  clickable: false,
+                  geodesic: true,
+                }}
+              />
+            );
+          })}
+          <Marker
+            position={carPosition}
+            icon={{
+              url: "https://maps.google.com/mapfiles/kml/shapes/cabs.png",
+              scaledSize: new window.google.maps.Size(40, 40),
+              labelOrigin: new window.google.maps.Point(20, -10),
+            }}
+            label={{
+              text: `${carSpeed.toFixed(1)} km/h`,
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "14px",
+              className: styles.carSpeedLabel,
+            }}
+          />
+        </GoogleMap>
+        <div className={styles.hourSliderRow}>
+          <label htmlFor="hour-slider" className={styles.hourSliderLabel}><b>Hour of Day:</b> {hourOfDay}:00</label>
           <input
             id="hour-slider"
             type="range"
@@ -171,35 +197,12 @@ export default function AnimatedCarMap() {
             step={1}
             value={hourOfDay}
             onChange={e => setHourOfDay(Number(e.target.value))}
-            style={{ width: 180 }}
+            className={styles.hourSlider}
           />
         </div>
       </div>
-      {/* Overlays: info and cruise profile, now at the bottom half, side by side */}
-      <div style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1000,
-        display: "flex",
-        justifyContent: "center",
-        gap: 32,
-        pointerEvents: "none",
-        padding: 24,
-      }}>
-        <div style={{
-          background: "rgba(30,30,30,0.95)",
-          color: "#fff",
-          borderRadius: 12,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
-          padding: "18px 28px",
-          minWidth: 220,
-          fontFamily: "sans-serif",
-          fontSize: 16,
-          lineHeight: 1.7,
-          pointerEvents: "auto",
-        }}>
+      <div className={styles.infoColumn}>
+        <div className={styles.infoBox}>
           <div><b>Current Speed:</b> {carSpeed.toFixed(1)} km/h</div>
           <div><b>Segment ID:</b> {carIndex}</div>
           <div><b>Upcoming Speed:</b> {nextSpeed.toFixed(1)} km/h</div>
@@ -213,39 +216,26 @@ export default function AnimatedCarMap() {
               step={0.05}
               value={speedMultiplier}
               onChange={e => setSpeedMultiplier(Number(e.target.value))}
-              style={{ width: "100%", marginTop: 6 }}
+              className={styles.speedSlider}
             />
-            <div style={{ textAlign: "center", fontSize: 14, marginTop: 2 }}>
+            <div className={styles.speedSliderValue}>
               {speedMultiplier.toFixed(2)}x
             </div>
           </div>
         </div>
-        <div style={{
-          background: "rgba(30,30,30,0.95)",
-          color: "#fff",
-          borderRadius: 12,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
-          padding: "18px 28px",
-          minWidth: 220,
-          maxHeight: 320,
-          overflowY: "auto",
-          fontFamily: "sans-serif",
-          fontSize: 15,
-          lineHeight: 1.7,
-          pointerEvents: "auto",
-        }}>
-          <div style={{ fontWeight: "bold", marginBottom: 8 }}>Segment → Cruise Speed</div>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className={styles.profileBox}>
+          <div className={styles.profileBoxTitle}>Segment → Cruise Speed</div>
+          <table className={styles.profileTable}>
             <tbody>
               {cruiseProfiles.map((profile, i) => (
-                <tr key={profile.segmentId} style={{ background: carIndex === i ? "#333" : "none" }}>
-                  <td style={{ padding: "2px 8px 2px 0", textAlign: "right", fontWeight: carIndex === i ? "bold" : undefined }}>
+                <tr key={profile.segmentId} className={carIndex === i ? styles.profileTableRowActive : undefined}>
+                  <td className={carIndex === i ? `${styles.profileTableCell} ${styles.profileTableCellActive}` : styles.profileTableCell}>
                     {profile.segmentId}
                   </td>
-                  <td style={{ padding: "2px 0 2px 8px", color: getSpeedColor(profile.chosenSpeedKmh), fontWeight: carIndex === i ? "bold" : undefined }}>
+                  <td className={styles.profileTableCellSpeed} style={{ color: getSpeedColor(profile.chosenSpeedKmh), fontWeight: carIndex === i ? "bold" : undefined }}>
                     {profile.chosenSpeedKmh.toFixed(1)} km/h
                   </td>
-                  <td style={{ padding: "2px 0 2px 8px", fontSize: 12, color: "#aaa" }}>
+                  <td className={styles.profileTableCellReason}>
                     {profile.reason}
                   </td>
                 </tr>
@@ -254,58 +244,6 @@ export default function AnimatedCarMap() {
           </table>
         </div>
       </div>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={12}
-      >
-        <Polyline
-          path={stuttgartRoute}
-          options={{
-            strokeColor: "#FF0000",
-            strokeOpacity: 0.8,
-            strokeWeight: 4,
-            clickable: false,
-            geodesic: true,
-          }}
-        />
-        {/* Draw colored segments for each route segment based on cruiseProfiles */}
-        {cruiseProfiles.map((profile, i) => {
-          if (i === cruiseProfiles.length - 1) return null;
-          const next = cruiseProfiles[i + 1];
-          return (
-            <Polyline
-              key={i}
-              path={[
-                { lat: stuttgartRoute[i].lat, lng: stuttgartRoute[i].lng },
-                { lat: stuttgartRoute[i + 1].lat, lng: stuttgartRoute[i + 1].lng },
-              ]}
-              options={{
-                strokeColor: getSpeedColor(profile.chosenSpeedKmh),
-                strokeOpacity: 0.9,
-                strokeWeight: 6,
-                clickable: false,
-                geodesic: true,
-              }}
-            />
-          );
-        })}
-        <Marker
-          position={carPosition}
-          icon={{
-            url: "https://maps.google.com/mapfiles/kml/shapes/cabs.png",
-            scaledSize: new window.google.maps.Size(40, 40),
-            labelOrigin: new window.google.maps.Point(20, -10),
-          }}
-          label={{
-            text: `${carSpeed.toFixed(1)} km/h`,
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "14px",
-            className: "car-speed-label",
-          }}
-        />
-      </GoogleMap>
-    </>
+    </div>
   );
 } 
