@@ -18,7 +18,7 @@ export default function Home() {
         </div>
       </main>
       <footer className={styles.footer}>
-        &copy; {new Date().getFullYear()} CruiseCast MVP &mdash; Hackathon Demo
+        &copy; 2025 CruiseCast MVP &mdash; Hackathon Demo
       </footer>
     </div>
   );

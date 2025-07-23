@@ -27,13 +27,19 @@ export default function AnimatedCarMap() {
   });
 
   // --- Hour of day state ---
-  const [hourOfDay, setHourOfDay] = useState(new Date().getHours());
+  const [hourOfDay, setHourOfDay] = useState<number | null>(null);
+  useEffect(() => {
+    setHourOfDay(new Date().getHours());
+  }, []);
 
   // Compute cruise profile for each segment using the algorithm and selected hour
   const cruiseProfiles = useMemo(
-    () => stuttgartSegments.map((segment, idx) =>
-      computeCruiseProfile(stuttgartSamples[idx], segment, mockConfig, getDateWithHour(hourOfDay))
-    ),
+    () =>
+      hourOfDay !== null
+        ? stuttgartSegments.map((segment, idx) =>
+          computeCruiseProfile(stuttgartSamples[idx], segment, mockConfig, getDateWithHour(hourOfDay))
+        )
+        : [],
     [hourOfDay]
   );
 
@@ -117,7 +123,7 @@ export default function AnimatedCarMap() {
   }, []);
 
   if (loadError) return <div>Map cannot be loaded right now.</div>;
-  if (!isLoaded) return <div>Loading Map...</div>;
+  if (!isLoaded || hourOfDay === null) return <div>Loading Map...</div>;
 
   // Helper to get color based on speed
   function getSpeedColor(speed: number) {
